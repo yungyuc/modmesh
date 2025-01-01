@@ -72,6 +72,7 @@ class _Manager(metaclass=_Singleton):
             # an error could occur:
             # RuntimeError:
             # Internal C++ object (PySide6.QtGui.QWindow) already deleted.
+            self._mainWindow = _pcore.RManager.instance.mainWindow
             self._rmgr = _pcore.RManager.instance
             self._rmgr.setUp()
             self.gmsh_dialog = _mesh.GmshFileDialog(mgr=self)
