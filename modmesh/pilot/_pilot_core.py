@@ -38,6 +38,12 @@ try:
     from _modmesh import pilot as _pilot_impl  # noqa: F401
 
     enable = True
+    # Need a module-level variable to ensure the Qt MainWindow created
+    # in c++ is registered to Shiboken6 to ensure lifecycle. Otherwise
+    # an error could occur:
+    # RuntimeError:
+    # Internal C++ object (PySide6.QtGui.QWindow) already deleted.
+    _mainWindow = _pilot_impl.RManager.instance.mainWindow
 except ImportError:
     pass
 
