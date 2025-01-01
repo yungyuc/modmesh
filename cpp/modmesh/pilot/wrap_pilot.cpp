@@ -513,36 +513,6 @@ class MODMESH_PYTHON_WRAPPER_VISIBILITY WrapRCameraController
     }
 };
 
-struct RManagerProxy
-{
-};
-
-class MODMESH_PYTHON_WRAPPER_VISIBILITY WrapRManagerProxy
-    : public WrapBase<WrapRManagerProxy, RManagerProxy>
-{
-
-    friend root_base_type;
-
-    WrapRManagerProxy(pybind11::module & mod, char const * pyname, char const * pydoc)
-        : root_base_type(mod, pyname, pydoc)
-    {
-        namespace py = pybind11;
-
-        (*this)
-            .def(
-                "__getattr__",
-                [](wrapped_type &, char const * name)
-                {
-                    py::object obj = py::cast(RManager::instance());
-                    obj = obj.attr(name);
-                    return obj;
-                })
-            //
-            ;
-    }
-
-}; /* end class WrapRManagerProxy */
-
 void wrap_pilot(pybind11::module & mod)
 {
     namespace py = pybind11;
@@ -552,9 +522,6 @@ void wrap_pilot(pybind11::module & mod)
     WrapRPythonConsoleDockWidget::commit(mod, "RPythonConsoleDockWidget", "RPythonConsoleDockWidget");
     WrapRCameraController::commit(mod, "RCameraController", "RCameraController");
     WrapRManager::commit(mod, "RManager", "RManager");
-    WrapRManagerProxy::commit(mod, "RManagerProxy", "RManagerProxy");
-
-    mod.attr("mgr") = RManagerProxy();
 
     try
     {
