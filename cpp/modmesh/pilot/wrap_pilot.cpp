@@ -522,6 +522,21 @@ void wrap_pilot(pybind11::module & mod)
     WrapRPythonConsoleDockWidget::commit(mod, "RPythonConsoleDockWidget", "RPythonConsoleDockWidget");
     WrapRCameraController::commit(mod, "RCameraController", "RCameraController");
     WrapRManager::commit(mod, "RManager", "RManager");
+
+    try
+    {
+        // Creating module level variable to handle Qt MainWindow which is
+        // created by c++ and registered it to Shiboken6 to prevent runtime
+        // error occured.
+        // RuntimeError:
+        // Internal C++ object (PySide6.QtGui.QWindow) already deleted.
+        // py::module::import("PySide6.QtWidgets");
+        py::globals()["_mainWindow"] = RManager::instance().mainWindow();
+    }
+    catch (const pybind11::error_already_set & e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 struct view_pymod_tag;
