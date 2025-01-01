@@ -75,6 +75,8 @@ class _Manager(metaclass=_Singleton):
             self._mainWindow = _pcore.RManager.instance.mainWindow
             self._rmgr = _pcore.RManager.instance
             self._rmgr.setUp()
+            self._rmgr.windowTitle = name
+            self._rmgr.resize(w=1000, h=600)
             self.gmsh_dialog = _mesh.GmshFileDialog(mgr=self)
             self.sample_mesh = _mesh.SampleMesh(mgr=self)
             self.populate_menu()
