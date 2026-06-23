@@ -6,6 +6,7 @@ Design and implementation plans for public review and discussions.
 :maxdepth: 2
 
 rdomainwidget
+speed-up-pr-ci
 ```
 
 <!-- vim: set ft=markdown ff=unix fenc=utf8 et sw=2 ts=2 sts=2 tw=79: -->
