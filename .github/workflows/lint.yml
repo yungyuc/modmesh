@@ -57,10 +57,15 @@ jobs:
 
     strategy:
       matrix:
+        # The formatting, flake8, and ASCII/whitespace checks are platform
+        # independent, so running them on ubuntu covers every pull request.
+        # The macOS leg (a second clang-tidy compile billed at the higher
+        # macOS rate) adds only macOS-specific clang-tidy coverage, so it runs
+        # on the nightly schedule only. macos-26 is arm64 with 7 GB RAM;
+        # parallelism is capped via NPROC in the env block above so clang-tidy
+        # does not OOM.
         # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md
-        # macos-26 is arm64 with 7 GB RAM; parallelism is capped via NPROC
-        # in the env block above so clang-tidy does not OOM.
-        os: [ubuntu-24.04, macos-26]
+        os: ${{ (github.event_name == 'schedule' && fromJSON('["ubuntu-24.04", "macos-26"]')) || fromJSON('["ubuntu-24.04"]') }}
         cmake_build_type: [Debug]
 
       fail-fast: false
