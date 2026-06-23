@@ -79,6 +79,7 @@ jobs:
           key: ${{ runner.os }}-Release
           restore-keys: ${{ runner.os }}-Release
           create-symlink: true
+          max-size: 1500M
 
       - name: setup.py install build_ext
         run: |

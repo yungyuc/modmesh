@@ -93,6 +93,7 @@ jobs:
         key: ${{ runner.os }}-tidy-${{ matrix.cmake_build_type }}
         restore-keys: ${{ runner.os }}-tidy-${{ matrix.cmake_build_type }}
         create-symlink: true
+        max-size: 1500M
 
     - name: make cformat (clang-format check)
       run: |
