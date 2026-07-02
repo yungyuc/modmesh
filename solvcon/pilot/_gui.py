@@ -54,6 +54,7 @@ class _Controller(metaclass=_Singleton):
         # Windows may "exited with code -1073740791."
         self._rmgr = None
         self.panels_menu = None
+        self.sample_dialog = None
         self.gmsh_dialog = None
         self.svg_dialog = None
         self.mesh_info = None
@@ -97,6 +98,8 @@ class _Controller(metaclass=_Singleton):
         self.oblique_solver = _oblique.ObliqueShockSolver(mgr=self._rmgr)
         self.recdom = _mesh.RectangularDomain(mgr=self._rmgr)
         self.naca4airfoil = airfoil.Naca4Airfoil(mgr=self._rmgr)
+        self.sample_dialog = _mesh.SampleMeshDialog(
+            mgr=self._rmgr, entries=self._sample_entries())
         self.eulerone = _euler1d.Euler1DApp(mgr=self._rmgr)
         self.burgers = _burgers1d.Burgers1DApp(mgr=self._rmgr)
         self.linear_wave = _linear_wave.LinearWave1DApp(mgr=self._rmgr)
@@ -108,6 +111,16 @@ class _Controller(metaclass=_Singleton):
         self.populate_menu()
         self._rmgr.show()
         return self._rmgr.exec()
+
+    def _sample_entries(self):
+        """Every example mesh as ``(category, label, tip, func)``, in menu
+        order, gathered from the sample features for the sample dialog.  The
+        features stay live so the dialog can invoke their bound methods.
+        """
+        return (self.sample_mesh.sample_entries()
+                + self.oblique_shock.sample_entries()
+                + self.oblique_solver.sample_entries()
+                + self.naca4airfoil.sample_entries())
 
     def populate_menu(self):
         wm = self._rmgr
@@ -131,10 +144,10 @@ class _Controller(metaclass=_Singleton):
         self.svg_dialog.populate_menu()
         self.mesh_info.populate_menu()
         self.painter.populate_menu()
-        self.sample_mesh.populate_menu()
-        self.oblique_shock.populate_menu()
-        self.oblique_solver.populate_menu()
-        self.naca4airfoil.populate_menu()
+        # The example meshes live behind one "Sample mesh..." dialog; the
+        # separator sets them off from the real mesh operation below.
+        self.sample_dialog.populate_menu()
+        wm.meshMenu.addSeparator()
         self.recdom.populate_menu()
         self.eulerone.populate_menu()
         self.burgers.populate_menu()

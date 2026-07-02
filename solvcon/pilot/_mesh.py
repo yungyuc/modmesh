@@ -24,48 +24,29 @@ class SampleMesh(_gui_common.PilotFeature):
     Create sample mesh windows.
     """
 
-    def populate_menu(self):
-        self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: mesh of a triangle (2D)",
-            tip="Create a very simple sample mesh of a triangle",
-            func=self.mesh_triangle,
-        )
-
-        self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: mesh of a tetrahedron (3D)",
-            tip="Create a very simple sample mesh of a tetrahedron",
-            func=self.mesh_tetrahedron,
-        )
-
-        self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: mesh of \"solvcon\" text in 2D",
-            tip="Create a sample mesh drawing a text string of \"solvcon\"",
-            func=self.mesh_solvcon_2dtext,
-        )
-
-        self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: small 2D mesh of mixed elements",
-            tip="Create a small sample mesh of mixed elements in 2D",
-            func=self.mesh_2dmix_small,
-        )
-
-        self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: larger 2D mesh of mixed elements",
-            tip="Create a larger simple sample mesh of mixed elements in 2D",
-            func=self.mesh_2dmix_large,
-        )
-
-        self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: 3D mesh of mixed elements",
-            tip="Create a very simple sample mesh of mixed elements in 3D",
-            func=self.mesh_3dmix,
-        )
+    def sample_entries(self):
+        """``(category, label, tip, func)`` for each sample this feature can
+        create; consumed by :class:`SampleMeshDialog`."""
+        return [
+            ("Basic shapes", "Triangle (2D)",
+             "Create a very simple sample mesh of a triangle",
+             self.mesh_triangle),
+            ("Basic shapes", "Tetrahedron (3D)",
+             "Create a very simple sample mesh of a tetrahedron",
+             self.mesh_tetrahedron),
+            ("Basic shapes", "\"solvcon\" text (2D)",
+             "Create a sample mesh drawing a text string of \"solvcon\"",
+             self.mesh_solvcon_2dtext),
+            ("Mixed elements", "Small (2D)",
+             "Create a small sample mesh of mixed elements in 2D",
+             self.mesh_2dmix_small),
+            ("Mixed elements", "Larger (2D)",
+             "Create a larger simple sample mesh of mixed elements in 2D",
+             self.mesh_2dmix_large),
+            ("Mixed elements", "3D",
+             "Create a very simple sample mesh of mixed elements in 3D",
+             self.mesh_3dmix),
+        ]
 
     def mesh_triangle(self):
         mh = core.StaticMesh(ndim=2, nnode=4, nface=0, ncell=3)
@@ -291,6 +272,82 @@ class SampleMesh(_gui_common.PilotFeature):
         w_3dmix.updateMesh(mh)
         w_3dmix.showAxis(True)
         self._mgr.pycon.writeToHistory(f"3dmix nedge: {mh.nedge}\n")
+
+
+class SampleMeshDialog(_gui_common.PilotFeature):
+    """A single Mesh-menu item that opens a dialog listing the example
+    meshes, grouped by category, and creates the selected one.
+
+    The example meshes are otherwise the bulk of the Mesh menu; collecting
+    them behind one dialog keeps the menu itself for real mesh operations.
+    Each contributing feature supplies its own ``sample_entries()`` and the
+    controller passes the combined list in as ``entries``.
+    """
+
+    def __init__(self, *args, **kw):
+        self._entries = kw.pop('entries', [])
+        super().__init__(*args, **kw)
+        self._dialog = None
+        self._tree = None
+
+    def populate_menu(self):
+        self._add_menu_item(
+            menu=self._mgr.meshMenu,
+            text="Sample mesh...",
+            tip="Choose an example mesh to create",
+            func=self.open_dialog,
+        )
+
+    def open_dialog(self):
+        # Build lazily and reuse: the dialog is modeless so several samples
+        # can be created without reopening it.
+        if self._dialog is None:
+            self._dialog = self._build_dialog()
+        self._dialog.show()
+        self._dialog.raise_()
+
+    def _build_dialog(self):
+        dialog = QtWidgets.QDialog(self._mainWindow)
+        dialog.setWindowTitle("Sample meshes")
+        layout = QtWidgets.QVBoxLayout(dialog)
+
+        tree = QtWidgets.QTreeWidget()
+        tree.setHeaderHidden(True)
+        groups = {}
+        for category, label, tip, func in self._entries:
+            group = groups.get(category)
+            if group is None:
+                group = QtWidgets.QTreeWidgetItem(tree, [category])
+                group.setFlags(QtCore.Qt.ItemIsEnabled)
+                group.setExpanded(True)
+                groups[category] = group
+            item = QtWidgets.QTreeWidgetItem(group, [label])
+            item.setToolTip(0, tip)
+            item.setData(0, QtCore.Qt.UserRole, func)
+        tree.itemDoubleClicked.connect(
+            lambda item, _col: self._invoke(item))
+        layout.addWidget(tree)
+        self._tree = tree
+
+        buttons = QtWidgets.QHBoxLayout()
+        create = QtWidgets.QPushButton("Create")
+        create.setDefault(True)
+        create.clicked.connect(lambda: self._invoke(tree.currentItem()))
+        close = QtWidgets.QPushButton("Close")
+        close.clicked.connect(dialog.close)
+        buttons.addStretch(1)
+        buttons.addWidget(create)
+        buttons.addWidget(close)
+        layout.addLayout(buttons)
+        return dialog
+
+    def _invoke(self, item):
+        """Create the mesh for ``item`` when it is a selectable leaf."""
+        if item is None:
+            return
+        func = item.data(0, QtCore.Qt.UserRole)
+        if callable(func):
+            func()
 
 
 class GmshFileDialog(_gui_common.PilotFeature):
