@@ -17,10 +17,14 @@ class Naca4Airfoil(_gui_common.PilotFeature):
     Provide pilot GUI control for the NACA 4-digit airfoil shape.
     """
 
+    def __init__(self, *args, **kw):
+        self._menu = kw.pop('menu', None)
+        super().__init__(*args, **kw)
+
     def populate_menu(self):
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: NACA 4-digit",
+            menu=self._menu or self._mgr.meshMenu,
+            text="NACA 4-digit",
             tip="Draw a NACA 4-digit airfoil",
             func=self.sample_window,
         )

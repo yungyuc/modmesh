@@ -72,23 +72,28 @@ class ObliqueShockMesh(_gui_common.PilotFeature):
     Draw the oblique-shock reflection mesh and tag its boundary.
     """
 
+    def __init__(self, *args, **kw):
+        self._menu = kw.pop('menu', None)
+        super().__init__(*args, **kw)
+
     def populate_menu(self):
+        menu = self._menu or self._mgr.meshMenu
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: oblique-shock reflection mesh (2D quad)",
+            menu=menu,
+            text="Quad mesh (2D)",
             tip="Draw the quad wedge mesh for the oblique-shock reflection",
             func=self.draw_quad_mesh,
         )
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: oblique-shock reflection mesh (2D triangle)",
+            menu=menu,
+            text="Triangle mesh (2D)",
             tip="Draw the triangle wedge mesh for the oblique-shock "
                 "reflection",
             func=self.draw_triangle_mesh,
         )
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: oblique-shock reflection mesh (2D unstructured)",
+            menu=menu,
+            text="Unstructured mesh (2D)",
             tip="Draw the unstructured (Delaunay) triangle wedge mesh for "
                 "the oblique-shock reflection",
             func=self.draw_unstructured_mesh,
@@ -130,15 +135,17 @@ class ObliqueShockSolver(_gui_common.PilotFeature):
     INTERVAL_MS = 50
 
     def __init__(self, *args, **kw):
+        self._menu = kw.pop('menu', None)
         # Keep every running session (3D widget, timer, driver) referenced so
         # Qt and the driver are not garbage-collected mid-run.
         self._sessions = []
         super(ObliqueShockSolver, self).__init__(*args, **kw)
 
     def populate_menu(self):
+        menu = self._menu or self._mgr.meshMenu
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: oblique-shock solution (density)",
+            menu=menu,
+            text="Solution: density",
             tip="March the oblique-shock Euler solver and draw the density "
                 "as a 2D color field",
             func=self._run,

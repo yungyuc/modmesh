@@ -54,6 +54,11 @@ class _Controller(metaclass=_Singleton):
         # Windows may "exited with code -1073740791."
         self._rmgr = None
         self.panels_menu = None
+        self.samples_menu = None
+        self.samples_basic = None
+        self.samples_mixed = None
+        self.samples_oblique = None
+        self.samples_airfoil = None
         self.gmsh_dialog = None
         self.svg_dialog = None
         self.mesh_info = None
@@ -88,15 +93,22 @@ class _Controller(metaclass=_Singleton):
         else:
             view.addMenu(self.panels_menu)
 
+        self._setup_mesh_menu()
+
         self.gmsh_dialog = _mesh.GmshFileDialog(mgr=self._rmgr)
         self.svg_dialog = _svg_gui.SVGFileDialog(mgr=self._rmgr)
-        self.sample_mesh = _mesh.SampleMesh(mgr=self._rmgr)
+        self.sample_mesh = _mesh.SampleMesh(mgr=self._rmgr,
+                                            basic_menu=self.samples_basic,
+                                            mixed_menu=self.samples_mixed)
         self.mesh_info = _mesh_info.MeshInfo(mgr=self._rmgr,
                                              menu=self.panels_menu)
-        self.oblique_shock = _oblique.ObliqueShockMesh(mgr=self._rmgr)
-        self.oblique_solver = _oblique.ObliqueShockSolver(mgr=self._rmgr)
+        self.oblique_shock = _oblique.ObliqueShockMesh(
+            mgr=self._rmgr, menu=self.samples_oblique)
+        self.oblique_solver = _oblique.ObliqueShockSolver(
+            mgr=self._rmgr, menu=self.samples_oblique)
         self.recdom = _mesh.RectangularDomain(mgr=self._rmgr)
-        self.naca4airfoil = airfoil.Naca4Airfoil(mgr=self._rmgr)
+        self.naca4airfoil = airfoil.Naca4Airfoil(mgr=self._rmgr,
+                                                 menu=self.samples_airfoil)
         self.eulerone = _euler1d.Euler1DApp(mgr=self._rmgr)
         self.burgers = _burgers1d.Burgers1DApp(mgr=self._rmgr)
         self.linear_wave = _linear_wave.LinearWave1DApp(mgr=self._rmgr)
@@ -108,6 +120,33 @@ class _Controller(metaclass=_Singleton):
         self.populate_menu()
         self._rmgr.show()
         return self._rmgr.exec()
+
+    def _setup_mesh_menu(self):
+        """Build the Mesh menu skeleton.
+
+        The example meshes fold into a "Samples" submenu, grouped by kind, so
+        the Mesh top level stays reserved for real mesh operations.  Create
+        the category submenus here, in display order, so each feature only has
+        to fill the leaf it is handed.
+        """
+        mesh = self._rmgr.meshMenu
+        mw = self._rmgr.mainWindow
+        # Build each QMenu explicitly and keep the Python reference: the
+        # wrapper returned by QMenu.addMenu(str) is invalidated by Shiboken
+        # even though the C++ menu lives on, so a stored return value goes
+        # stale.  Owning the objects here keeps them usable by the features.
+        self.samples_menu = QMenu("Samples", mw)
+        self.samples_basic = QMenu("Basic shapes", self.samples_menu)
+        self.samples_mixed = QMenu("Mixed elements", self.samples_menu)
+        self.samples_oblique = QMenu("Oblique-shock reflection",
+                                     self.samples_menu)
+        self.samples_airfoil = QMenu("Airfoil", self.samples_menu)
+        mesh.addMenu(self.samples_menu)
+        self.samples_menu.addMenu(self.samples_basic)
+        self.samples_menu.addMenu(self.samples_mixed)
+        self.samples_menu.addMenu(self.samples_oblique)
+        self.samples_menu.addMenu(self.samples_airfoil)
+        mesh.addSeparator()
 
     def populate_menu(self):
         wm = self._rmgr

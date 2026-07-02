@@ -24,45 +24,56 @@ class SampleMesh(_gui_common.PilotFeature):
     Create sample mesh windows.
     """
 
+    def __init__(self, *args, **kw):
+        # Samples split by element makeup: basic single-type shapes and
+        # mixed-element meshes.  Fall back to the Mesh menu when no grouping
+        # is supplied.
+        self._basic_menu = kw.pop('basic_menu', None)
+        self._mixed_menu = kw.pop('mixed_menu', None)
+        super().__init__(*args, **kw)
+
     def populate_menu(self):
+        basic = self._basic_menu or self._mgr.meshMenu
+        mixed = self._mixed_menu or self._mgr.meshMenu
+
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: mesh of a triangle (2D)",
+            menu=basic,
+            text="Triangle (2D)",
             tip="Create a very simple sample mesh of a triangle",
             func=self.mesh_triangle,
         )
 
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: mesh of a tetrahedron (3D)",
+            menu=basic,
+            text="Tetrahedron (3D)",
             tip="Create a very simple sample mesh of a tetrahedron",
             func=self.mesh_tetrahedron,
         )
 
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: mesh of \"solvcon\" text in 2D",
+            menu=basic,
+            text="\"solvcon\" text (2D)",
             tip="Create a sample mesh drawing a text string of \"solvcon\"",
             func=self.mesh_solvcon_2dtext,
         )
 
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: small 2D mesh of mixed elements",
+            menu=mixed,
+            text="Small (2D)",
             tip="Create a small sample mesh of mixed elements in 2D",
             func=self.mesh_2dmix_small,
         )
 
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: larger 2D mesh of mixed elements",
+            menu=mixed,
+            text="Larger (2D)",
             tip="Create a larger simple sample mesh of mixed elements in 2D",
             func=self.mesh_2dmix_large,
         )
 
         self._add_menu_item(
-            menu=self._mgr.meshMenu,
-            text="Sample: 3D mesh of mixed elements",
+            menu=mixed,
+            text="3D",
             tip="Create a very simple sample mesh of mixed elements in 3D",
             func=self.mesh_3dmix,
         )
